@@ -181,21 +181,19 @@
     let gameOver = false;
     let spawnTimeout;
 
-    /* Collectible definitions:
-       - For books and tulips we now use PNG images (update the src values accordingly).
-       - The dumbbell remains an inline SVG.
+    
     */
     const collectibles = [
       { // Book collectible (PNG)
         type: 'img',
-        src: 'book.png',  // Replace with your book PNG URL or file path.
+        src: 'book.png',  
         points: 15,
         width: 80,
         height: 80
       },
       { // Tulip collectible (PNG)
         type: 'img',
-        src: 'tulip.png',  // Replace with your tulip PNG URL or file path.
+        src: 'tulip.png',  
         points: 20,
         width: 80,
         height: 80
@@ -277,7 +275,7 @@
       const endScreen = document.createElement('div');
       endScreen.id = 'endScreen';
       endScreen.innerHTML = `
-        <h1>🎉 Happy late Birthday little one haha! 🎂</h1>
+        <h1>🎉 Happy late Birthday little one! 🎂</h1>
         <p>
           To My Little One:<br>
           May your life bloom like tulips,<br>
