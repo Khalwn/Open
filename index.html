@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Little One's Birthday Quest! 🌸</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap">
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      background: linear-gradient(#f7e6ff, #cce6ff);
+      font-family: 'Patrick Hand', cursive;
+      touch-action: manipulation;
+      overflow: hidden;
+    }
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #score {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 10px 20px;
+      border-radius: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      font-size: 1.2em;
+      z-index: 10;
+    }
+    .collectible {
+      position: absolute;
+      cursor: pointer;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      animation: float 3s ease-in-out infinite;
+      filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+    }
+    .collectible:hover {
+      transform: scale(1.3);
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(5deg); }
+      50% { transform: translateY(-20px) rotate(-5deg); }
+    }
+    .pump {
+      animation: pump 0.5s ease-out;
+    }
+    @keyframes pump {
+      50% { transform: scale(1.5); }
+    }
+    /* Bunny Styling */
+    #bunny {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 120px;
+      transition: left 0.1s ease-out;
+      z-index: 5;
+      filter: drop-shadow(4px 6px 8px rgba(0,0,0,0.2));
+    }
+    /* Bunny Jump Animation */
+    #bunny.jump {
+      animation: jump 0.4s ease-out;
+    }
+    @keyframes jump {
+      0% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-20px); }
+      100% { transform: translateX(-50%) translateY(0); }
+    }
+    /* Start Screen Overlay */
+    #startScreen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(255,255,255,0.95);
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.2);
+      text-align: center;
+      z-index: 20;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+    #startScreen h1 {
+      margin: 0 0 10px;
+      color: #EC407A;
+      font-size: 2.5em;
+    }
+    #startScreen p {
+      font-size: 1.2em;
+      margin: 20px 0;
+      color: #555;
+    }
+    #startScreen button {
+      font-size: 1.2em;
+      padding: 8px 20px;
+      background: #EC407A;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    #startScreen button:hover {
+      background: #D81B60;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    /* End Screen Overlay */
+    #endScreen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(255,255,255,0.95);
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.2);
+      text-align: center;
+      z-index: 20;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+    #endScreen h1 {
+      margin: 0 0 10px;
+      color: #EC407A;
+      font-size: 2.8em;
+    }
+    #endScreen p {
+      font-size: 1.3em;
+      margin: 20px 0;
+      color: #555;
+    }
+    /* Responsive adjustments for mobile end screen */
+    @media (max-width: 600px) {
+      #endScreen {
+        padding: 20px;
+      }
+      #endScreen h1 {
+        font-size: 2em;
+        word-wrap: break-word;
+      }
+      #endScreen p {
+        font-size: 1em;
+        word-wrap: break-word;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="score" aria-live="polite">🎂 Points: 0</div>
+  <div id="gameContainer">
+    <!-- Start Screen Overlay -->
+    <div id="startScreen" role="dialog" aria-labelledby="startHeading" aria-describedby="startDesc">
+      <h1 id="startHeading">Welcome!</h1>
+      <p id="startDesc">
+        Hurry and reach 150 points!<br>
+        Can you find all the goodies?<br>
+        (Psst... Where did the gym dumbbell go?)
+      </p>
+      <button id="startBtn">Start the Quest!</button>
+    </div>
+    
+    <!-- Bunny SVG -->
+    <div id="bunny" aria-label="Bunny">
+      <svg viewBox="0 0 200 200" width="120" height="120">
+        <g transform="translate(100,100)">
+          <!-- Left Ear -->
+          <path d="M -40 -80 C -60 -140, -10 -150, -5 -80 Z" fill="#FFB6C1" stroke="#FF69B4" stroke-width="4"/>
+          <!-- Right Ear -->
+          <path d="M 40 -80 C 60 -140, 10 -150, 5 -80 Z" fill="#FFB6C1" stroke="#FF69B4" stroke-width="4"/>
+          <!-- Face -->
+          <circle cx="0" cy="10" r="40" fill="#FFFDE7" stroke="#FF69B4" stroke-width="4"/>
+          <!-- Eyes -->
+          <circle cx="-15" cy="0" r="5" fill="#000"/>
+          <circle cx="15" cy="0" r="5" fill="#000"/>
+          <!-- Nose -->
+          <path d="M -5 15 Q 0 25, 5 15" fill="none" stroke="#FF69B4" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  
+  <script>
+    // Wrap our code to run once the DOM is ready.
+    document.addEventListener('DOMContentLoaded', () => {
+      const game = {
+        score: 0,
+        gameOver: false,
+        spawnTimeout: null,
+        maxCollectibles: 5,
+        collectibles: [
+          { // Book collectible (PNG)
+            type: 'img',
+            src: 'book.png',  // Update with your book PNG URL or file path.
+            points: 15,
+            width: 80,
+            height: 80,
+            alt: 'Book'
+          },
+          { // Tulip collectible (PNG)
+            type: 'img',
+            src: 'tulip.png',  // Update with your tulip PNG URL or file path.
+            points: 20,
+            width: 80,
+            height: 80,
+            alt: 'Tulip'
+          },
+          { // Dumbbell collectible (SVG)
+            type: 'svg',
+            svg: `
+              <svg viewBox="0 0 64 64" width="80" height="80">
+                <circle cx="14" cy="32" r="10" fill="#CFD8DC" stroke="#90A4AE" stroke-width="3"/>
+                <circle cx="50" cy="32" r="10" fill="#CFD8DC" stroke="#90A4AE" stroke-width="3"/>
+                <rect x="24" y="28" width="16" height="8" fill="#B0BEC5" stroke="#90A4AE" stroke-width="3"/>
+              </svg>
+            `,
+            points: 10,
+            width: 80,
+            height: 80
+          }
+        ],
+        
+        // Update the bunny's position based on the clientX coordinate.
+        updateBunnyPosition(clientX) {
+          const bunny = document.getElementById('bunny');
+          let newX = clientX - bunny.offsetWidth / 2;
+          newX = Math.max(0, Math.min(newX, window.innerWidth - bunny.offsetWidth));
+          bunny.style.left = newX + 'px';
+        },
+        
+        // Trigger bunny jump animation.
+        bunnyJump() {
+          const bunny = document.getElementById('bunny');
+          bunny.classList.add('jump');
+          setTimeout(() => bunny.classList.remove('jump'), 400);
+        },
+        
+        // Spawn a collectible at a random position.
+        spawnCollectible() {
+          if (this.gameOver) return;
+          
+          // Ensure we don't exceed the maximum concurrent collectibles.
+          if (document.querySelectorAll('.collectible').length >= this.maxCollectibles) {
+            this.spawnTimeout = setTimeout(() => this.spawnCollectible(), 600);
+            return;
+          }
+          
+          // Choose a random collectible.
+          const itemData = this.collectibles[Math.floor(Math.random() * this.collectibles.length)];
+          const item = document.createElement('div');
+          item.className = 'collectible';
+          item.style.width = itemData.width + 'px';
+          item.style.height = itemData.height + 'px';
+          item.style.left = Math.random() * (window.innerWidth - itemData.width) + 'px';
+          // Position it within the visible game area.
+          item.style.top = Math.random() * (window.innerHeight - itemData.height - 140) + 'px';
+          
+          if (itemData.type === 'img') {
+            const img = document.createElement('img');
+            img.src = itemData.src;
+            img.width = itemData.width;
+            img.height = itemData.height;
+            img.alt = itemData.alt || 'Collectible item';
+            item.appendChild(img);
+          } else if (itemData.type === 'svg') {
+            item.innerHTML = itemData.svg;
+          }
+          
+          // Automatically remove the collectible after 7 seconds if unclicked.
+          const removeTimer = setTimeout(() => {
+            if (item.parentElement) {
+              item.style.opacity = 0;
+              setTimeout(() => item.remove(), 300);
+            }
+          }, 7000);
+          
+          // When the collectible is clicked, update the score and animate the bunny.
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearTimeout(removeTimer);
+            this.score += itemData.points;
+            document.getElementById('score').innerHTML = `🎂 Points: ${this.score}`;
+            item.classList.add('pump');
+            setTimeout(() => item.remove(), 300);
+            
+            // Move the bunny toward the click position and animate the jump.
+            this.updateBunnyPosition(e.clientX);
+            this.bunnyJump();
+            
+            // Check for win condition.
+            if (this.score >= 150) {
+              this.endGame();
+            }
+          });
+          
+          document.getElementById('gameContainer').appendChild(item);
+          
+          // Adjust spawn delay based on the current score.
+          const baseDelay = 1500; 
+          const delayReduction = Math.min(this.score * 2, 800);
+          const nextDelay = Math.max(baseDelay - delayReduction, 600);
+          
+          this.spawnTimeout = setTimeout(() => this.spawnCollectible(), nextDelay);
+        },
+        
+        // End the game and show the end screen.
+        endGame() {
+          this.gameOver = true;
+          clearTimeout(this.spawnTimeout);
+          // Remove any remaining collectibles.
+          document.querySelectorAll('.collectible').forEach(item => item.remove());
+          // Create and display the end screen.
+          const endScreen = document.createElement('div');
+          endScreen.id = 'endScreen';
+          endScreen.innerHTML = `
+            <h1>🎉 Happy Late Birthday, Little One! 🎂</h1>
+            <p>
+              To My Little One:<br>
+              May your life bloom like tulips,<br>
+              Be strong like gym weights,<br>
+              And full of knowledge like books!<br>
+              ❤️ From Your Man
+            </p>
+          `;
+          document.getElementById('gameContainer').appendChild(endScreen);
+        },
+        
+        // Initialize game event listeners.
+        init() {
+          // Start game on button click.
+          document.getElementById('startBtn').addEventListener('click', () => {
+            const startScreen = document.getElementById('startScreen');
+            startScreen.style.transition = 'opacity 0.5s ease';
+            startScreen.style.opacity = 0;
+            setTimeout(() => {
+              startScreen.remove();
+              this.spawnCollectible();
+            }, 500);
+          });
+          
+          // Bunny movement: follow mouse and touch events.
+          document.addEventListener('mousemove', (e) => this.updateBunnyPosition(e.clientX));
+          document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            this.updateBunnyPosition(e.touches[0].clientX);
+          }, { passive: false });
+        }
+      };
+      
+      // Start the game.
+      game.init();
+    });
+  </script>
+</body>
+</html>
